@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Geophoning",
+    "description": "This project is used to get geophoning route in Nascentes do Xingu.",
+    "slug": "geophoning",
+    "privacy": "public",
+    "sdkVersion": "26.0.0",
+    "platforms": ["ios", "android"],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.nascentesdoxingu.geophoning",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCyH3WXs70xDF5DrJ72ih-7tTQn1D8CnBw"
+        }
+      }
+    }
+  }
+}
