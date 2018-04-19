@@ -18,20 +18,24 @@ export default class App extends Component {
       latitudeDelta: LATITUDE_DELTA, 
       longitudeDelta: LONGITUDE_DELTA 
     },
-    markers: [],
+    
     route: [],
+    waypoints: [],
     geophoning: false,
     loading_watch_position: false,
     show_bottom_options: "",
 
-    markerCounter: 0,
+    markers: [],
     markerTitle: "",
     markerDescription: "",
     markerTitleError: "",
-    markerDescriptionError: ""
+    markerDescriptionError: "",
+    markerEditingKey: null
   };
   
   watchId = null
+  markerCounter = 0
+
   
   componentDidMount() {
     this._get_current_position();    
@@ -57,19 +61,22 @@ export default class App extends Component {
 
   _updateLocation = async (location) => {
 
-    var route = this.state.route
-    
-    if ( route.length > 23  ) {
-            
-      for ( var index in route) {
-        if ( index % 2 === 1 ) {
-          route.splice(index, 1)
-        }
-      }
-    
-      this.setState({route: route});
+    var route = this.state.route;
+    var waypoints = route.slice(1, -1);
 
+    if (waypoints.length > 23) {      
+      while (waypoints.length > 23) {
+        var temp = []
+        waypoints.forEach( function (value, index) {
+          if (index % 2 == 0) {
+            temp.push(value);
+          }          
+        })
+        waypoints = temp
+      }
     }
+    
+    this.setState({waypoints: waypoints});
 
     this.setState({
       mapRegion: { 
@@ -132,7 +139,7 @@ export default class App extends Component {
             title="Inserir"
             onPress={ () => {
                 if (this.state.markerDescription != "" && this.state.markerTitle != "") {
-                  this.setState({markerCounter: this.state.markerCounter+1});
+                  this.markerCounter = this.markerCounter++
                   this.setState(
                     {
                     show_bottom_options: "button",
@@ -146,7 +153,7 @@ export default class App extends Component {
                         },
                         title: this.state.markerTitle,
                         description: this.state.markerDescription,
-                        key: this.state.markerCounter
+                        key: this.markerCounter
                       }
                     ]}
                   );
@@ -173,6 +180,29 @@ export default class App extends Component {
     return (
       <View>
 
+        <Text style={styles.title}>Editar Ponto</Text>
+
+        <Button 
+          title="Deletar"
+          buttonStyle={styles.button_style}
+          onPress={ () => {
+              this.setState({show_bottom_options: "button"});
+              var markerEditingKey = this.state.markerEditingKey;
+              var markers = this.state.markers;
+
+              this.state.markers.forEach(function(value, i) {
+                if (value.key === markerEditingKey) {
+                  markers.splice(i, 1);
+               }
+
+             });
+
+             this.setState({markers: markers});
+
+            }            
+          }          
+        />
+
         <FormLabel>Título do Ponto</FormLabel>
         <FormInput value={this.state.markerTitle} onChangeText={ text => this.setState({markerTitle: text}) }/>
         <FormValidationMessage>{this.state.markerTitleError}</FormValidationMessage>
@@ -186,6 +216,44 @@ export default class App extends Component {
             title="Cancelar"
             onPress={ () => this.setState({show_bottom_options: "button"}) }
             buttonStyle={styles.button_style}
+          />
+          <Button 
+            title="Inserir"            
+            buttonStyle={styles.button_style}
+            onPress={ () => 
+              {
+                var markerEditingKey = this.state.markerEditingKey;
+                var markers = this.state.markers;
+                var markerTitle = this.state.markerTitle;
+                var markerDescription = this.state.markerDescription;
+
+                if (this.state.markerTitle != "" && this.state.markerDescription != "") {
+                  this.setState({show_bottom_options: "button", markerTitleError: "", markerDescriptionError: ""});
+
+
+                  this.state.markers.forEach(function(value, i) {
+                     if (value.key === markerEditingKey) {
+                      markers[i].title = markerTitle;
+                      markers[i].description = markerDescription;
+                    }
+
+                  });
+
+                  this.setState({markers: markers});
+
+                } 
+
+                if (this.state.markerTitle === "") {
+                  this.setState({markerTitleError: "Este campo é obrigatório."})
+                }
+
+                if (this.state.markerDescription === "") {
+                  this.setState({markerDescriptionError: "Este campo é obrigatório."})
+                }
+
+              }
+              
+            }
           />
         </View>  
 
@@ -255,16 +323,45 @@ export default class App extends Component {
     }
   };
 
+  // MAP RENDERS
+  _render_start_marker = () => {
+    if ( this.state.geophoning && this.state.route.length > 0 ) {
+      return (
+        <MapView.Callout>
+          <MapView.Marker
+            coordinate={this.state.route[0]}
+            title={"INÍCIO DA ROTA"}
+            pinColor={'green'}
+          />
+        </MapView.Callout>
+      );
+    }
+    else return null
+
+  };
+
+  _render_end_marker = () => {
+    if ( this.state.geophoning && this.state.route.length > 1) {
+      return (
+        <MapView.Callout>
+          <MapView.Marker
+            coordinate={this.state.route.slice(-1)[0]}
+            title={"FIM DA ROTA"}
+            pinColor={'green'}
+          />
+        </MapView.Callout>
+      );
+    }
+    else return null
+
+  };
+
   _render_map = () => {
     return (
       <MapView
         style={styles.map}
         region={this.state.mapRegion}
         showsUserLocation={true}
-        loadingEnabled={true}	
-        cacheEnabled={true}
-        toolbarEnabled={true}
-        showsCompass={true}
         showsMyLocationButton={true}
       >
       
@@ -275,27 +372,31 @@ export default class App extends Component {
               coordinate={marker.coords}
               title={marker.title}
               description={marker.description}
-              onPress={() => {
+              onCalloutPress={() => {
                   this.setState({
                     show_bottom_options: 'editMarker', 
+                    markerEditingKey: marker.key,
                     markerTitle: marker.title, 
-                    markerDescription: marker.description});
+                    markerDescription: marker.description                    
+                  });
                 }
               }
             />
           </MapView.Callout>
         ))}
 
+        {this._render_start_marker()}
+        {this._render_end_marker()}
 
         <MapViewDirections
           origin={this.state.route[0]}
           destination={this.state.route.slice(-1)[0]}
           apikey={GOOGLE_MAPS_APIKEY}
-          waypoints={this.state.route.slice(1, -1)}
+          waypoints={this.state.waypoints}
           language="pt-BR"
           mode="walking"
-          strokeWidth={3}
-          strokeColor="hotpink"
+          strokeWidth={10}
+          strokeColor="blue"
         />      
       </ MapView>
     );
@@ -379,6 +480,12 @@ const styles = StyleSheet.create({
     margin: 3
   },
 
+  title: {
+    textAlign: 'center',
+    fontSize: 40,
+    marginBottom: 10
+  },
+
   error: {
     color: "red",
     textAlign: "center",
@@ -387,7 +494,7 @@ const styles = StyleSheet.create({
 
   button_container: {
     flexDirection: "row",
-    justifyContent: 'space-around'
+    justifyContent: "space-around"
   },
 
   button_style: {
