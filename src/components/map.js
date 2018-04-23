@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, TextInput } from 'react-native';
-import { Location, Permissions, MapView } from 'expo';
+import { View, Text, StyleSheet } from 'react-native';
+import { Location, MapView } from 'expo';
 import { Button, Icon, FormLabel, FormInput, FormValidationMessage } from "react-native-elements";
 import MapViewDirections from 'react-native-maps-directions';
 import axios from 'axios';
@@ -39,12 +39,25 @@ export default class Map extends Component {
     watchId = null
     markerCounter = 0
 
+    static navigationOptions = {
+      headerTitle: "Teste",
+      headerRight: (
+        <Button
+          onPress={() => alert('This is a button!')}
+          title="Info"
+          color="#fff"
+        />
+      ),
+    };
+
     componentDidMount() {
         this._get_current_position();    
     };  
 
     componentWillUnmount() {
+      if (this.watchId != null) {
         this._stop_watch_position();
+      }
     }
 
 
@@ -378,7 +391,7 @@ export default class Map extends Component {
             <View style={styles.button_container}>
               <Button 
                 title="Voltar"
-                onPress={ () => this.setState({page: "frontPage", show_bottom_options: ""}) }
+                onPress={ () => this.props.navigation.goBack() }
                 buttonStyle={styles.button_style}
                 icon={ {name: "times", type: "font-awesome"} }
               />
