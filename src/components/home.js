@@ -1,33 +1,30 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Card, Button, Icon } from "react-native-elements";
+import { View, Text, Image, StyleSheet, StatusBar } from 'react-native';
+import { Button, Icon } from "react-native-elements";
 
 
 export default class Home extends Component {
     render() {
         return (
-            <Card 
-            title="NASCENTES DO XINGU" 
-            containerStyle={{flex: 1, marginBottom: 15}}
-            >
-              <View style={{marginTop: 150}}>
-                <Button 
-                  title="Iniciar"
-                  onPress={() => this.props.navigation.navigate('Map')}
-                  buttonStyle={styles.button_style}
-                />
-                <Button 
-                  title="Minhas Rotas"
-                  onPress={() => none}
-                  buttonStyle={styles.button_style}
-                />
-              </View>
-              <View style={styles.footer}>
-                <Icon name='copyright' />
-                <Text>2018 - Nascentes do Xingu</Text>
-              </View>
-            </Card>
-            
+            <View style={styles.container}>
+                <Image source={require('../../assets/logo_nx.png')} />
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                    <Button 
+                    title="Iniciar"
+                    onPress={() => this.props.navigation.navigate('Map')}
+                    buttonStyle={styles.button_style}
+                    />
+                    <Button 
+                    title="Minhas Rotas"
+                    onPress={() => none}
+                    buttonStyle={styles.button_style}
+                    />
+                </View>
+                <View style={styles.footer}>
+                    <Icon name='copyright' />
+                    <Text> 2018 - Nascentes do Xingu</Text>
+                </View>
+            </View>
         );
     }
 };
@@ -39,11 +36,16 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: "space-between", 
+      alignItems: 'center',
       backgroundColor: "rgba(255, 255, 255, 0.6)", 
+      marginTop: StatusBar.currentHeight
     },
   
-    map: {
-      flex: 1
+    footer: {
+      flexDirection: 'row', 
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 2
     },
   
     input_style: {
