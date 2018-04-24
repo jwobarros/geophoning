@@ -7,14 +7,22 @@ import { DrawerNavigator } from 'react-navigation';
 // SCREENS
 import Home from './src/components/home';
 import Map from './src/components/map';
+import PhotoTaker from './src/components/camera';
 
 const RootStack = DrawerNavigator({
+
     Home: {
       screen: Home,
     },
+
     Map: {
       screen: Map,
     },
+
+    PhotoTaker: {
+      screen: PhotoTaker,
+    },
+
   },
   {
     initialRouteName: 'Home',
@@ -29,11 +37,14 @@ const RootStack = DrawerNavigator({
 
 export default class App extends Component {
 
-  render() {
+  render() {   
+    
     return (
       <RootStack />
     );
+
   }
+
 }
 
 

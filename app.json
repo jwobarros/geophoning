@@ -8,9 +8,12 @@
     "platforms": ["ios", "android"],
     "version": "1.0.0",
     "orientation": "portrait",
+    "primaryColor": "#ffffff",
     "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/logo_nx.png"
+      "image": "./assets/logo_nx.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
     "updates": {
       "fallbackToCacheTimeout": 0

@@ -2,9 +2,28 @@
   "main": "node_modules/expo/AppEntry.js",
   "private": true,
   "dependencies": {
+    "axios": "^0.18.0",
     "expo": "^26.0.0",
     "react": "16.3.0-alpha.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-26.0.0.tar.gz",
-    "react-native-maps-directions": "^1.6.0"
-  }
+    "react-native-elements": "^0.19.1",
+    "react-native-maps-directions": "^1.6.0",
+    "react-navigation": "^1.5.11"
+  },
+  "name": "geophoning",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JohnnatanWilliamOliveiraBarros/geophoning.git"
+  },
+  "author": "Johnnatan William de Oliveira Barros",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JohnnatanWilliamOliveiraBarros/geophoning/issues"
+  },
+  "homepage": "https://github.com/JohnnatanWilliamOliveiraBarros/geophoning#readme",
+  "description": ""
 }

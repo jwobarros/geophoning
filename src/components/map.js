@@ -6,8 +6,8 @@ import MapViewDirections from 'react-native-maps-directions';
 import axios from 'axios';
 
 const GOOGLE_MAPS_APIKEY = 'AIzaSyCyH3WXs70xDF5DrJ72ih-7tTQn1D8CnBw';
-const LATITUDE_DELTA = 0.01;
-const LONGITUDE_DELTA = 0.01;
+const LATITUDE_DELTA = 0.001;
+const LONGITUDE_DELTA = 0.001;
 
 export default class Map extends Component {
 
@@ -18,6 +18,9 @@ export default class Map extends Component {
           latitudeDelta: LATITUDE_DELTA, 
           longitudeDelta: LONGITUDE_DELTA 
         },
+
+        mapLoaded: false,
+        loadingMessage: '',
         origin: null,
         destination: null,
         route: [],
@@ -99,7 +102,7 @@ export default class Map extends Component {
               longitude: location.coords.longitude,   
             }
           ]
-        });
+        }, console.log(this.MapDirections.state.coordinates));
     
     };
     
@@ -113,7 +116,6 @@ export default class Map extends Component {
             callback = currentLocation => {
               this.setState({geophoning: true});
               this._updateLocation(currentLocation);
-              console.log(this.watchId, 'updating');
             }
         );
     };
@@ -176,10 +178,25 @@ export default class Map extends Component {
                <MapView
                style={styles.map}
                region={this.state.mapRegion}
-               showsUserLocation={true}
-               showsMyLocationButton={true}
+               loadingEnabled={true}
                >
-       
+
+                  <MapView.Circle 
+                    center={{latitude: this.state.mapRegion.latitude, longitude: this.state.mapRegion.longitude}}
+                    radius={1}
+                    strokeWidth={1}
+                    strokeColor='rgba(61, 109, 204, 1)'
+                    fillColor='rgba(61, 109, 204, 0.8)'
+                  />
+
+                  <MapView.Circle 
+                    center={{latitude: this.state.mapRegion.latitude, longitude: this.state.mapRegion.longitude}}
+                    radius={5}
+                    strokeWidth={2}
+                    strokeColor='rgba(61, 109, 204, 0.3)'
+                    fillColor='rgba(61, 109, 204, 0.3)'
+                  />
+
                    {this.state.markers.map(marker => (
                    <MapView.Callout>
                        <MapView.Marker
@@ -233,6 +250,7 @@ export default class Map extends Component {
                    {this._render_end_marker()}
 
                    <MapViewDirections
+                   ref={(MapDirections) => {this.MapDirections = MapDirections;}}
                    origin={this.state.route[0]}
                    destination={this.state.route.slice(-1)[0]}
                    apikey={GOOGLE_MAPS_APIKEY}
@@ -242,9 +260,8 @@ export default class Map extends Component {
                    strokeWidth={10}
                    strokeColor="blue"
                    onReady={(params) => {
-                      console.log(params);
-                       this.setState({show_route_points: true, origin: params.coordinates[0], destination: params.coordinates[1]});
-                     }}
+                      this.setState({show_route_points: true, origin: params.coordinates[0], destination: params.coordinates[1], distance: params.distance * 1000});
+                    }}
                    />
 
 
@@ -261,7 +278,7 @@ export default class Map extends Component {
                   </Badge>
     
                   <Badge containerStyle={{ backgroundColor: '#fff'}}>
-                    <Text>Distância Percorrida: {this.state.distance}</Text>
+                    <Text>Distância: {this.state.distance} Metros</Text>
                   </Badge>
               </View>
             </View>           
@@ -324,64 +341,77 @@ export default class Map extends Component {
         return (
           <View style={{flex: 1, justifyContent: 'center'}}>
 
-            <Text style={styles.title}>Inserir Ponto</Text>
+            <View style={{flex: 1, justifyContent: 'center'}}>
+              <View style={{flex: 1, justifyContent: 'center'}}>
 
-            <FormLabel>Título do Ponto</FormLabel>
-            <FormInput onChangeText={ text => this.setState({markerTitle: text}) }/>
-            <FormValidationMessage>{this.state.markerTitleError}</FormValidationMessage>
-    
-            <FormLabel>Descrição</FormLabel>
-            <FormInput onChangeText={ text => this.setState({markerDescription: text}) }/>
-            <FormValidationMessage>{this.state.markerDescriptionError}</FormValidationMessage>
-    
-            <View style={styles.button_container}>
-              <Button 
-                title="Cancelar"
-                onPress={ () => this.setState({show_options: "map"}) }
-                buttonStyle={styles.button_style}
-              />
-              <Button 
-                title="Inserir"
-                onPress={ () => {
-                    if (this.state.markerDescription != "" && this.state.markerTitle != "") {
-                      this.markerCounter += 1; 
-                      this.setState(
-                        {
-                        show_options: "map",
-                        markerError: "",
-                        markers: [
-                          ...this.state.markers, 
+                <Text style={styles.title}>Inserir Ponto</Text>
+
+                <FormLabel>Título do Ponto</FormLabel>
+                <FormInput onChangeText={ text => this.setState({markerTitle: text}) }/>
+                <FormValidationMessage>{this.state.markerTitleError}</FormValidationMessage>
+        
+                <FormLabel>Descrição</FormLabel>
+                <FormInput onChangeText={ text => this.setState({markerDescription: text}) }/>
+                <FormValidationMessage>{this.state.markerDescriptionError}</FormValidationMessage>
+              </View> 
+
+              <View style={styles.button_container}>
+                <Button 
+                  title="Cancelar"
+                  onPress={ () => this.setState({show_options: "map"}) }
+                  buttonStyle={styles.button_style}
+                />
+                <Button 
+                  title="Inserir"
+                  onPress={ () => {
+                      if (this.state.markerDescription != "" && this.state.markerTitle != "") {
+                        this.markerCounter += 1; 
+                        this.setState(
                           {
-                            coords: {
-                              latitude: this.state.mapRegion.latitude,
-                              longitude: this.state.mapRegion.longitude
-                            },
-                            title: this.state.markerTitle,
-                            description: this.state.markerDescription,
-                            key: this.markerCounter,
-                            repositioned: false
-                          }
-                        ]},
+                          show_options: "map",
+                          markerError: "",
+                          markers: [
+                            ...this.state.markers, 
+                            {
+                              coords: {
+                                latitude: this.state.mapRegion.latitude,
+                                longitude: this.state.mapRegion.longitude
+                              },
+                              title: this.state.markerTitle,
+                              description: this.state.markerDescription,
+                              key: this.markerCounter,
+                              repositioned: false
+                            }
+                          ]},
 
-                        this._reposition_markers
+                          this._reposition_markers,
+                          this.props.navigation.navigate('PhotoTaker')
 
-                      );
-                      
+                        );
+                        
+                      }
+      
+                      if ( this.state.markerDescription == "" ) {
+                        this.setState({markerDescriptionError: "Este campo é obrigatório."})
+                      }
+      
+                      if ( this.state.markerTitle == "" ) {
+                        this.setState({markerTitleError: "Este campo é obrigatório."})
+                      }
+      
                     }
-    
-                    if ( this.state.markerDescription == "" ) {
-                      this.setState({markerDescriptionError: "Este campo é obrigatório."})
-                    }
-    
-                    if ( this.state.markerTitle == "" ) {
-                      this.setState({markerTitleError: "Este campo é obrigatório."})
-                    }
-    
                   }
-                }
-                buttonStyle={styles.button_style}
-              />
+                  buttonStyle={styles.button_style}
+                />
+              
             </View>  
+          </View> 
+
+          <View style={styles.footer}>
+            <Icon name='copyright' />
+            <Text> 2018 - Nascentes do Xingu</Text>
+          </View>
+
           </View>
         );
     };
@@ -515,11 +545,11 @@ export default class Map extends Component {
 
     _render = () => {
 
-        if (this.state.loading_watch_position && this.state.geophoning == false) {
+        if ((this.state.loading_watch_position && this.state.geophoning == false) /*|| !this.state.mapLoaded */ ) {
           return (
             <View style={{flex: 1, justifyContent: 'center'}}>
               <ActivityIndicator size="large" color="#0000ff" />
-              <Text style={{textAlign: 'center', color: '#0000ff'}}>Carregando...</Text>
+              <Text style={{textAlign: 'center', color: '#0000ff'}}>{this.state.loadingMessage || "Carregando..."}</Text>
             </View>  
           );
         }
