@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Geophoning",
-    "description": "This project is used to get geophoning route in Nascentes do Xingu.",
+    "description": "This project is used to get geophoning route to Nascentes do Xingu.",
     "slug": "geophoning",
     "privacy": "public",
     "sdkVersion": "26.0.0",
@@ -10,10 +10,8 @@
     "orientation": "portrait",
     "primaryColor": "#ffffff",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/logo_nx.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+    "androidStatusBar": {
+      "backgroundColor": "#00558A"
     },
     "updates": {
       "fallbackToCacheTimeout": 0

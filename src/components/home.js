@@ -2,13 +2,26 @@ import React, { Component } from 'react';
 import { View, Text, Image, StyleSheet, StatusBar } from 'react-native';
 import { Button, Icon } from "react-native-elements";
 
+import styles from '../static/styles';
 
 export default class Home extends Component {
+    
+    componentDidMount() {
+        StatusBar.setBackgroundColor('#599014');
+    };
+
     render() {
         return (
-            <View style={styles.container}>
-                <Image source={require('../../assets/logo_nx.png')} />
-                <View style={{ flex: 1, justifyContent: 'center' }}>
+            <View style={[styles.container, {alignItems: 'center', marginTop: StatusBar.currentHeight}]}>
+
+                <StatusBar
+                barStyle="light-content"
+                backgroundColor="#599014"
+                />
+
+                <Image style={{ flex: 1, aspectRatio: 1.5, resizeMode: 'contain', margin: 12}} source={require('../../assets/logo_nx.png')} />
+
+                <View style={{ flex: 1 }}>
                     <Button 
                     title="Iniciar"
                     onPress={() => this.props.navigation.navigate('Map')}
@@ -16,7 +29,7 @@ export default class Home extends Component {
                     />
                     <Button 
                     title="Minhas Rotas"
-                    onPress={() => none}
+                    onPress={() => console.log('Minhas Rotas')}
                     buttonStyle={styles.button_style}
                     />
                 </View>
@@ -29,48 +42,3 @@ export default class Home extends Component {
     }
 };
 
-
-// STYLE
-const styles = StyleSheet.create({
-
-    container: {
-      flex: 1,
-      justifyContent: "space-between", 
-      alignItems: 'center',
-      backgroundColor: "rgba(255, 255, 255, 0.6)", 
-      marginTop: StatusBar.currentHeight
-    },
-  
-    footer: {
-      flexDirection: 'row', 
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 2
-    },
-  
-    input_style: {
-      height: 44,
-      margin: 3
-    },
-  
-    title: {
-      textAlign: 'center',
-      fontSize: 30,
-      marginBottom: 10
-    },
-  
- 
-    button_container: {
-      flexDirection: "row",
-      justifyContent: "space-around"
-    },
-  
-    button_style: {
-      backgroundColor: "rgba(92, 99,216, 1)",
-      borderColor: "transparent",
-      borderWidth: 0,
-      borderRadius: 5,
-      margin: 3
-    },
-  
-});
