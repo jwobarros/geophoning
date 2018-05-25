@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { View, Text, Image, ActivityIndicator, Alert, StyleSheet, StatusBar, TouchableOpacity, Vibration, ScrollView } from 'react-native';
-import { Location, MapView, Camera, Permissions, FileSystem } from 'expo';
+import { Location, MapView, Camera, Permissions, FileSystem, SQLite } from 'expo';
 import { Header, Button, Icon, FormLabel, FormInput, FormValidationMessage, Badge, Divider } from "react-native-elements";
 import MapViewDirections from 'react-native-maps-directions';
 import axios from 'axios';
 
 import styles from '../static/styles';
 
+const db = SQLite.openDatabase('db.db');
 const GOOGLE_MAPS_APIKEY = 'AIzaSyCyH3WXs70xDF5DrJ72ih-7tTQn1D8CnBw';
 const LATITUDE_DELTA = 0.001;
 const LONGITUDE_DELTA = 0.001;
@@ -48,6 +49,7 @@ export default class Map extends Component {
         markerDescriptionError: "",
         markerKey: null,
         photos: [],
+        photoUri: "",
 
         hasCameraPermission: null,
         type: Camera.Constants.Type.back,        
@@ -199,7 +201,7 @@ export default class Map extends Component {
         this.markerCounter += 1; 
         this.setState(
           {
-          show_options: "camera",
+          show_options: "map",
           markerKey: this.markerCounter,
           show_marker_form: false,
           markerError: "",
@@ -306,18 +308,17 @@ export default class Map extends Component {
 
             let photoName = `MarkerKey-${marker.key}_DateTime-${today}`;
 
-            console.log(photoName);
+            
 
-            this.camera.takePictureAsync().then(data => {
+            this.camera.takePictureAsync({quality: 1.0}).then(data => {
               Vibration.vibrate();
               FileSystem.moveAsync({
                 from: data.uri,
                 to: `${FileSystem.documentDirectory}photos/${photoName}.jpg`,
               }).then(() => {
-                  this.setState({photos: [...this.state.photos, `${FileSystem.documentDirectory}photos/${photoName}.jpg`]})
-                  marker.photos = [...this.state.photos, `${FileSystem.documentDirectory}photos/${photoName}.jpg`]
+                  marker.photos = [...this.state.photos, `${FileSystem.documentDirectory}photos/${photoName}.jpg`]                
+                  this.setState({photos: marker.photos})
                   temp_markers.push(marker);
-
               });
             });
 
@@ -486,6 +487,7 @@ export default class Map extends Component {
             type={this.state.type}
             autoFocus='on'
             flashMode={this.state.flash}
+            ratio="16:9"
             >
               <View
                 style={{
@@ -588,7 +590,7 @@ export default class Map extends Component {
       
               <Text style={[styles.title, {marginTop: 20}]}>{this.state.markerTitle}</Text>
       
-              <View style={{flex: 1, justifyContent: 'center'}}>
+              <View style={{flex: 1, justifyContent: 'space-between'}}>
 
                 <FormLabel>Título do Ponto</FormLabel>
                 <FormInput value={this.state.markerTitle} onChangeText={ text => this.setState({markerTitle: text}) }/>
@@ -600,12 +602,12 @@ export default class Map extends Component {
     
                 <View style={[styles.button_container, {marginBottom: 30}]}>
                   <Button 
-                    title="Cancelar"
+                    title="Voltar"
                     onPress={ () => this.setState({show_options: 'markerOptions'}) }
                     buttonStyle={[styles.button_style, {backgroundColor: '#00558A'}]}
                   />
                   <Button 
-                    title="Inserir"            
+                    title="Salvar"            
                     buttonStyle={[styles.button_style, {backgroundColor: '#00558A'}]}
                     onPress={ () => this._edit_marker() }
                   />
@@ -627,7 +629,7 @@ export default class Map extends Component {
         return (
           <View style={[{justifyContent: 'center'}, styles.options]}>
 
-            <View style={{flex: 1, justifyContent: 'center'}}>
+            <View style={{flex: 1, justifyContent: 'space-between'}}>
 
               <Text style={[styles.title, {marginTop: 30}]}>Inserir Ponto</Text>
 
@@ -678,12 +680,12 @@ export default class Map extends Component {
               <View style={styles.button_container}>
                   
                   <Button 
-                    title="Cancelar"
+                    title="Não"
                     onPress={ () => this.setState({show_options: "markerOptions"}) }
                     buttonStyle={[styles.button_style, {backgroundColor: '#00558A'}]}
                   />             
                   <Button 
-                    title="Deletar"
+                    title="Sim"
                     buttonStyle={[styles.button_style, {backgroundColor: '#d9534f'}]}
                     onPress={ () => {
                         this.setState({show_options: 'map'});
@@ -702,8 +704,7 @@ export default class Map extends Component {
                       }            
                     }          
                   />
-                </View>   
-
+                </View>
             </View> 
 
           </View> 
@@ -723,13 +724,89 @@ export default class Map extends Component {
 
           <Text style={[styles.title, {marginTop: 30}]}>{this.state.markerTitle}</Text>
 
-          <View style={{flex: 1}}>
+          <View style={{flex: 1, justifyContent: 'center'}}>
+
+          <Divider style={{backgroundColor: '#00558A', margin: 20, height: 2}}/>
 
             <ScrollView>
 
-              {this.state.photos.map( uri => (<Image style={{ aspectRatio: 1.5, resizeMode: 'contain', margin: 5}} source={{uri}} />))}
+              {this.state.photos.map( uri => (
+                  <TouchableOpacity onPress={() => this.setState({photoUri: uri}, this.setState({show_options: "photosOptions"}))}>
+                    <Image style={{ flex: 1, aspectRatio: 1.5, resizeMode: 'cover', margin: 10}} source={{uri}} />
+                  </TouchableOpacity>                  
+                )
+              )}
 
             </ScrollView> 
+
+            <Button 
+              title="Tirar Foto"
+              onPress={ () => {
+                  if (this.state.photos.length > 2) {
+                      Alert.alert("Fotos", "O limite máximo de fotos por ponto é três, você pode excluir uma foto clicando nela para adicionar outra.")
+                    }
+                  } 
+                }
+              buttonStyle={[styles.button_style, {backgroundColor: '#00558A'}]}
+            />  
+
+          </View> 
+
+          <View style={styles.footer}>
+            <Icon name='copyright' />
+            <Text> 2018 - Nascentes do Xingu</Text>
+          </View>
+
+        </View>
+      );
+    };
+
+    _render_photos_options = () => {
+      return (
+        <View style={[{justifyContent: 'center'}, styles.options]}>
+
+          <Text style={[styles.title, {marginTop: 30}]}>{this.state.markerTitle}</Text>
+          <Divider style={{backgroundColor: '#00558A', margin: 20, height: 2}}/>
+
+          <View style={{flex: 1, justifyContent: 'center'}}>
+
+            <View style={styles.button_container}>
+                    
+              <Button 
+                title="Cancelar"
+                onPress={ () => this.setState({show_options: "markerOptions"}) }
+                buttonStyle={[styles.button_style, {backgroundColor: '#00558A'}]}
+              />             
+              <Button 
+                title="Deletar"
+                buttonStyle={[styles.button_style, {backgroundColor: '#d9534f'}]}
+                onPress={ () => {
+                    this.setState({show_options: 'photosMarker'});
+                    var markerKey = this.state.markerKey;
+                    var markers = this.state.markers;
+                    var temp_markers = []
+                    var photos = []
+                    markers.map(marker =>  {
+                      if (marker.key === markerKey) {
+                         marker.photos.map(uri => {
+                            console.log(uri, this.state.photoUri);
+                         })
+                         marker.photos = photos;
+                         this.setState({photos});
+                         temp_markers.push(marker);
+                      }                      
+                      else {
+                        temp_markers.push(marker);
+                      }
+
+                     });
+
+                  this.setState({markers: temp_markers});
+
+                  }            
+                }          
+              />
+            </View>
 
           </View> 
 
@@ -788,8 +865,8 @@ export default class Map extends Component {
                 />
 
                 </View>
-
-                <Divider style={{backgroundColor: '#00558A', margin: 20, height: 2}}/>
+                 
+                {/* <Divider style={{backgroundColor: '#00558A', margin: 20, height: 2}}/>
 
                 <Text style={{fontSize: 15, color: '#599014', fontWeight: 'bold', textAlign: 'left', marginLeft: 17}}>Fotos</Text>
                 <View style={styles.successZone}> 
@@ -798,7 +875,7 @@ export default class Map extends Component {
                     buttonStyle={[styles.button_style, {backgroundColor: '#599014'}]}
                     onPress={ () => this.setState({show_options: 'photosMarker'}) }
                   />                         
-                </View>
+                </View> */}
       
               </View>  
      
@@ -918,13 +995,17 @@ export default class Map extends Component {
           return this._render_delete_marker_options();
         }
 
-        else if (this.state.show_options === "photosMarker") {
-          return this._render_photos_marker_options();
-        }
+        // else if (this.state.show_options === "photosMarker") {
+        //   return this._render_photos_marker_options();
+        // }
 
-        else if (this.state.show_options === "camera") {
-          return this._render_camera();
-        } 
+        // else if (this.state.show_options === "photosOptions") {
+        //   return this._render_photos_options();
+        // }
+
+        // else if (this.state.show_options === "camera") {
+        //   return this._render_camera();
+        // } 
 
     };
 
@@ -964,7 +1045,7 @@ export default class Map extends Component {
                 } 
                />
                }
-               centerComponent={{ text: 'GEOFONAMENTO', style: { color: '#fff', fontSize: 20 } }}
+               centerComponent={ { text: 'GEOFONAMENTO', style: { color: '#fff', fontSize: 20 } } }
                rightComponent={
                  <Icon
                  name='bars'
@@ -982,10 +1063,9 @@ export default class Map extends Component {
                innerContainerStyles={{ justifyContent: 'space-around', alignItems: 'center', alignContent: 'center' }}
             />
 
-             {this._render()}
+            { this._render() }
 
-          </View>   
-          
+          </View> 
         );
     };
 };
