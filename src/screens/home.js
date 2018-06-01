@@ -25,12 +25,12 @@ export default class Home extends Component {
                     <Button 
                     title="Iniciar"
                     onPress={() => this.props.navigation.navigate('Map')}
-                    buttonStyle={styles.button_style}
+                    buttonStyle={[styles.button_style, {backgroundColor: '#00558A'}]}
                     />
                     <Button 
                     title="Minhas Rotas"
                     onPress={() => console.log('Minhas Rotas')}
-                    buttonStyle={styles.button_style}
+                    buttonStyle={[styles.button_style, {backgroundColor: '#00558A'}]}
                     />
                 </View>
                 <View style={styles.footer}>

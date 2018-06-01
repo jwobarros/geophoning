@@ -1,33 +1,77 @@
 import React, { Component } from 'react';
 import { View, Image, StatusBar } from 'react-native';
-import { Card, Button, Icon, FormLabel, FormInput, FormValidationMessage, Dimensions } from "react-native-elements";
+import { Icon, Dimensions } from "react-native-elements";
 import { Asset, AppLoading } from 'expo';
 
 import { DrawerNavigator } from 'react-navigation';
 
 import styles from './src/static/styles';
 
+// Menu Component
+import Menu from './src/components/menu';
+
 // SCREENS
-import Home from './src/components/home';
-import Map from './src/components/map';
+import Home from './src/screens/home';
+import Map from './src/screens/map';
+import NewMarker from './src/screens/newMarker';
+import EditMarker from './src/screens/editMarker';
+import DeleteMarker from './src/screens/deleteMarker';
 
 const RootStack = DrawerNavigator({
 
     Home: {
       screen: Home,
+      navigationOptions: {
+        drawerIcon: () => (
+          <Icon name='home' />
+        )
+      }
     },
 
     Map: {
       screen: Map,
+      navigationOptions: {
+        drawerIcon: () => (
+          <Icon name='map' type="foundation" />
+        )
+      }
+    },
+
+    NewMarker: {
+      screen: NewMarker,
+      navigationOptions: {
+        drawerIcon: () => (
+          <Icon name="add-location" type="material-community," />
+        )
+      }
+    },
+
+    EditMarker: {
+      screen: EditMarker,
+      navigationOptions: {
+        drawerIcon: () => (
+          <Icon name="edit-location" type="material-community," />
+        )
+      }
+    },
+
+    DeleteMarker: {
+      screen: DeleteMarker,
+      navigationOptions: {
+        drawerIcon: () => (
+          <Icon name='delete-forever' type="material-community," />
+        )
+      }
     },
 
    },
   {
     initialRouteName: 'Home',
+    contentComponent: Menu,
     navigationOptions: {
       headerStyle: {
         paddingTop: StatusBar.currentHeight
-      }
+      },
     }
   }
 );
